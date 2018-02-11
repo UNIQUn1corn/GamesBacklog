@@ -6,12 +6,15 @@ import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.DefaultItemAnimator;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
+import android.support.v7.widget.helper.ItemTouchHelper;
 import android.view.View;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.widget.Toast;
 
 import com.example.marmm.gamesbacklog.R;
 import com.example.marmm.gamesbacklog.data.DataSource;
@@ -36,6 +39,15 @@ public class GamesActivity extends AppCompatActivity implements GamesAdapter.OnG
         // Setup the RecyclerView
         mRecyclerView = findViewById(R.id.gameList);
         mRecyclerView.setLayoutManager(new LinearLayoutManager(this, LinearLayoutManager.VERTICAL, false));
+
+        RecyclerView.ItemAnimator itemAnimator = new DefaultItemAnimator();
+        itemAnimator.setAddDuration(100L);
+        itemAnimator.setRemoveDuration(100L);
+        mRecyclerView.setItemAnimator(itemAnimator);
+
+        ItemTouchHelper itemTouchHelper = new ItemTouchHelper(itemTouchCallback());
+        itemTouchHelper.attachToRecyclerView(mRecyclerView);
+
 
         mDataSource = new DataSource(this);
         mDataSource.open();
@@ -118,5 +130,35 @@ public class GamesActivity extends AppCompatActivity implements GamesAdapter.OnG
     public void onGameClick(Game game) {
         updateGame (game);
     }
+
+
+    private ItemTouchHelper.SimpleCallback itemTouchCallback() {
+        return new ItemTouchHelper.SimpleCallback(ItemTouchHelper.UP | ItemTouchHelper.DOWN, ItemTouchHelper.LEFT | ItemTouchHelper.RIGHT) {
+            @Override
+            public boolean onMove(RecyclerView recyclerView, RecyclerView.ViewHolder viewHolder, RecyclerView.ViewHolder target) {
+                // unused
+                return true;
+            }
+
+            @Override
+            public void onSwiped(RecyclerView.ViewHolder viewHolder, int swipeDir) {
+                // Get the id of the game object on which we performed the swipe operation
+                Game game = ((GamesAdapter.GameViewHolder) viewHolder).getGame();
+                // Delete the game object from our database
+                mDataSource.delete(game.getId());
+                // Get a new cursor from our database
+                Cursor cursor = mDataSource.findAll();
+                mAdapter.swapCursor(cursor);
+                mAdapter.notifyDataSetChanged();
+                // Show a Toast message to inform the user that the game was deleted, note that we
+                // are calling makeText from within an anonymous class so we have to explicitly tell
+                // it to use GamesActivity.this instead of just this as that points to the anonymous
+                // class
+                Toast.makeText(GamesActivity.this, R.string.message_game_deleted, Toast.LENGTH_SHORT).show();
+            }
+        };
+    }
+
+
 }
 
