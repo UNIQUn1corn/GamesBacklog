@@ -10,10 +10,10 @@ import android.database.sqlite.SQLiteDatabase;
  */
 
 
-    public class GameRepository {
+    public class DataSource {
 
-        private SQLiteDatabase database;
-        private final DBHelper dbHelper;
+        private SQLiteDatabase mDatabase;
+        private final DBHelper mDBHelper;
         private final String[] GAMES_ALL_COLUMNS = {
                 GamesContract.GameEntry.COLUMN_NAME_ID,
                 GamesContract.GameEntry.COLUMN_NAME_TITLE,
@@ -22,18 +22,28 @@ import android.database.sqlite.SQLiteDatabase;
                 GamesContract.GameEntry.COLUMN_NAME_STATUS,
                 GamesContract.GameEntry.COLUMN_NAME_NOTES };
 
-        public GameRepository(Context context) {
-            dbHelper = new DBHelper(context);
+
+
+    // Opens the mDatabase to use it
+    public void open()  {
+        mDatabase = mDBHelper.getWritableDatabase();
+    }
+    // Closes the mDatabase when you no longer need it
+    public void close() {
+        mDBHelper.close();
+    }
+
+
+    public DataSource(Context context) {
+            mDBHelper = new DBHelper(context);
         }
 
         /**
-         * Save an object within the database.
+         * Save an object within the mDatabase.
          *
          * @param game the object to be saved.
          */
         public void save(Game game) {
-            SQLiteDatabase db = dbHelper.getWritableDatabase();
-
             ContentValues values = new ContentValues();
             values.put(GamesContract.GameEntry.COLUMN_NAME_TITLE, game.getTitle());
             values.put(GamesContract.GameEntry.COLUMN_NAME_PLATFORM, game.getPlatform());
@@ -41,18 +51,17 @@ import android.database.sqlite.SQLiteDatabase;
             values.put(GamesContract.GameEntry.COLUMN_NAME_STATUS, game.getStatus());
             values.put(GamesContract.GameEntry.COLUMN_NAME_NOTES, game.getNotes());
             // Inserting Row
-            db.insert(GamesContract.GameEntry.TABLE_NAME, null, values);
-            db.close();
+            mDatabase.insert(GamesContract.GameEntry.TABLE_NAME, null, values);
+            mDatabase.close();
         }
 
         /**
-         * Update a single entity within the database.
+         * Update a single entity within the mDatabase.
          *
          * @param id   the id of the entity to be updated.
          * @param game holds the new values which will overwrite the old values.
          */
         public void update(int id, Game game) {
-            SQLiteDatabase db = dbHelper.getWritableDatabase();
 
             ContentValues values = new ContentValues();
             values.put(GamesContract.GameEntry.COLUMN_NAME_TITLE, game.getTitle());
@@ -61,8 +70,8 @@ import android.database.sqlite.SQLiteDatabase;
             values.put(GamesContract.GameEntry.COLUMN_NAME_STATUS, game.getStatus());
             values.put(GamesContract.GameEntry.COLUMN_NAME_NOTES, game.getNotes());
 
-            db.update(GamesContract.GameEntry.TABLE_NAME, values, GamesContract.GameEntry.COLUMN_NAME_ID + "= ?", new String[]{String.valueOf(id)});
-            db.close(); // Closing database connection
+            mDatabase.update(GamesContract.GameEntry.TABLE_NAME, values, GamesContract.GameEntry.COLUMN_NAME_ID + "= ?", new String[]{String.valueOf(id)});
+            mDatabase.close(); // Closing mDatabase connection
         }
 
 
@@ -72,25 +81,22 @@ import android.database.sqlite.SQLiteDatabase;
          * @return a cursor holding the game objects.
          */
         public Cursor findAll() {
-            // If we have not yet opened the database, open it
-            if (database == null) {
-                database = dbHelper.getReadableDatabase();
-            }
 
-            return database.query(GamesContract.GameEntry.TABLE_NAME, GAMES_ALL_COLUMNS, null, null, null, null, null);
+
+            return mDatabase.query(GamesContract.GameEntry.TABLE_NAME, GAMES_ALL_COLUMNS, null, null, null, null, null);
         }
 
         /**
-         * Delete a single entity from the database.
+         * Delete a single entity from the mDatabase.
          *
          * @param id the id of the entity to be deleted.
          */
         public void delete(int id) {
-            SQLiteDatabase db = dbHelper.getWritableDatabase();
 
-            db.delete(GamesContract.GameEntry.TABLE_NAME, GamesContract.GameEntry.COLUMN_NAME_ID + " =?",
+
+            mDatabase.delete(GamesContract.GameEntry.TABLE_NAME, GamesContract.GameEntry.COLUMN_NAME_ID + " =?",
                     new String[]{Integer.toString(id)});
-            db.close();
+
         }
     }
 

@@ -12,12 +12,15 @@ import android.view.Menu;
 import android.view.MenuItem;
 
 import com.example.marmm.gamesbacklog.R;
-import com.example.marmm.gamesbacklog.data.GameRepository;
+import com.example.marmm.gamesbacklog.data.DataSource;
 
 public class GamesActivity extends AppCompatActivity {
 
 
-    private GamesAdapter adapter;
+    private GamesAdapter mAdapter;
+    private Cursor mCursor;
+    private RecyclerView mRecyclerView;
+    private DataSource mDataSource;
 
 
     @Override
@@ -28,12 +31,12 @@ public class GamesActivity extends AppCompatActivity {
         setSupportActionBar(toolbar);
 
         // Setup the RecyclerView
-        RecyclerView gamesList = findViewById(R.id.gameList);
-        gamesList.setAdapter(adapter);
+        mRecyclerView = findViewById(R.id.gameList);
 
+        updateUI();
 
-        adapter = new GamesAdapter();
-
+        mDataSource = new DataSource(this);
+        mDataSource.open();
 
         FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
         fab.setOnClickListener(new View.OnClickListener() {
@@ -70,20 +73,28 @@ public class GamesActivity extends AppCompatActivity {
     }
 
     private void updateUI() {
-        GameRepository gameRepository = new GameRepository(this);
-        // Get all games from the database and add them to the adapter
-        Cursor cursor = gameRepository.findAll();
-        adapter.swapCursor(cursor);
-        // Notify the adapter that it's data has changed so it can redraw itself
-        adapter.notifyDataSetChanged();
+        mCursor =  mDataSource.findAll();
+        if (mAdapter == null) {
+            mAdapter = new GamesAdapter (mCursor);
+            mRecyclerView.setAdapter(mAdapter);
+        } else {
+            mAdapter.swapCursor(mCursor);
+        }
     }
 
 
-    @Override
-    public void onResume() {
+    protected void onResume() {
         super.onResume();
+        mDataSource.open();
         updateUI();
     }
+    @Override
+    protected void onPause() {
+        super.onPause();
+        if (mCursor != null && !mCursor.isClosed()) mCursor.close();
+        mDataSource.close();
+    }
+
 
 
 }

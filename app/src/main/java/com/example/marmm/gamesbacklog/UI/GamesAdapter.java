@@ -19,13 +19,10 @@ import com.example.marmm.gamesbacklog.data.GamesContract;
 public class GamesAdapter extends RecyclerView.Adapter<GamesAdapter.GameViewHolder> {
 
     private Cursor cursor;
-    private OnGameClickListener onGameClickListener;
 
-    public interface OnGameClickListener {
-        void onGameClick(Game game);
+    public GamesAdapter( Cursor cursor) {
+        this.cursor = cursor;
     }
-
-
 
     @Override
     public GameViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
@@ -54,20 +51,11 @@ public class GamesAdapter extends RecyclerView.Adapter<GamesAdapter.GameViewHold
 
     @Override
     public int getItemCount() {
-        return cursor.getCount();
+        return (cursor == null ? 0 : cursor.getCount());
     }
 
     public void swapCursor(Cursor cursor) {
         this.cursor = cursor;
-    }
-
-    /**
-     * Set a listener to receive a callback when a user clicks on a game.
-     *
-     * @param listener the listener which will receive the callback
-     */
-    public void setOnGameClickListener(OnGameClickListener listener) {
-        onGameClickListener = listener;
     }
 
 
@@ -78,7 +66,6 @@ public class GamesAdapter extends RecyclerView.Adapter<GamesAdapter.GameViewHold
     class GameViewHolder extends RecyclerView.ViewHolder {
 
         private Game game;
-        private final View root;
         private final TextView title;
         private final TextView platform;
         private final TextView status;
@@ -86,7 +73,6 @@ public class GamesAdapter extends RecyclerView.Adapter<GamesAdapter.GameViewHold
 
         GameViewHolder(View view) {
             super(view);
-            root = view;
             title = view.findViewById(R.id.gameTitle);
             date = view.findViewById(R.id.gameDate);
             status = view.findViewById(R.id.gameStatus);
@@ -104,16 +90,13 @@ public class GamesAdapter extends RecyclerView.Adapter<GamesAdapter.GameViewHold
             status.setText(game.getStatus());
             platform.setText(game.getPlatform());
 
-            root.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View view) {
-                    if (onGameClickListener != null) {
-                        onGameClickListener.onGameClick(game);
-                    }
-                }
-            });
         }
     }
 }
 
 
+// private OnGameClickListener onGameClickListener;
+
+// public interface OnGameClickListener {
+//     void onGameClick(Game game);
+// }
