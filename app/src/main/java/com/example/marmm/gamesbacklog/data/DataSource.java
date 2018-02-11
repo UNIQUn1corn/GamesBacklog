@@ -10,18 +10,17 @@ import android.database.sqlite.SQLiteDatabase;
  */
 
 
-    public class DataSource {
+public class DataSource {
 
-        private SQLiteDatabase mDatabase;
-        private final DBHelper mDBHelper;
-        private final String[] GAMES_ALL_COLUMNS = {
+       private SQLiteDatabase mDatabase;
+       private final DBHelper mDBHelper;
+       private final String[] GAMES_ALL_COLUMNS = {
                 GamesContract.GameEntry.COLUMN_NAME_ID,
                 GamesContract.GameEntry.COLUMN_NAME_TITLE,
                 GamesContract.GameEntry.COLUMN_NAME_PLATFORM,
                 GamesContract.GameEntry.COLUMN_NAME_DATE,
                 GamesContract.GameEntry.COLUMN_NAME_STATUS,
                 GamesContract.GameEntry.COLUMN_NAME_NOTES };
-
 
 
     // Opens the mDatabase to use it
@@ -81,8 +80,6 @@ import android.database.sqlite.SQLiteDatabase;
          * @return a cursor holding the game objects.
          */
         public Cursor findAll() {
-
-
             return mDatabase.query(GamesContract.GameEntry.TABLE_NAME, GAMES_ALL_COLUMNS, null, null, null, null, null);
         }
 
@@ -92,7 +89,6 @@ import android.database.sqlite.SQLiteDatabase;
          * @param id the id of the entity to be deleted.
          */
         public void delete(int id) {
-
 
             mDatabase.delete(GamesContract.GameEntry.TABLE_NAME, GamesContract.GameEntry.COLUMN_NAME_ID + " =?",
                     new String[]{Integer.toString(id)});

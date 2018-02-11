@@ -1,10 +1,12 @@
 package com.example.marmm.gamesbacklog.UI;
 
+import android.content.Intent;
 import android.database.Cursor;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
 import android.view.View;
@@ -13,8 +15,9 @@ import android.view.MenuItem;
 
 import com.example.marmm.gamesbacklog.R;
 import com.example.marmm.gamesbacklog.data.DataSource;
+import com.example.marmm.gamesbacklog.data.Game;
 
-public class GamesActivity extends AppCompatActivity {
+public class GamesActivity extends AppCompatActivity implements GamesAdapter.OnGameClickListener {
 
 
     private GamesAdapter mAdapter;
@@ -32,18 +35,20 @@ public class GamesActivity extends AppCompatActivity {
 
         // Setup the RecyclerView
         mRecyclerView = findViewById(R.id.gameList);
-
-        updateUI();
+        mRecyclerView.setLayoutManager(new LinearLayoutManager(this, LinearLayoutManager.VERTICAL, false));
 
         mDataSource = new DataSource(this);
         mDataSource.open();
 
+        updateUI();
+
         FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
+
+
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
-                        .setAction("Action", null).show();
+                addGame();
             }
         });
     }
@@ -75,7 +80,7 @@ public class GamesActivity extends AppCompatActivity {
     private void updateUI() {
         mCursor =  mDataSource.findAll();
         if (mAdapter == null) {
-            mAdapter = new GamesAdapter (mCursor);
+            mAdapter = new GamesAdapter (mCursor, this);
             mRecyclerView.setAdapter(mAdapter);
         } else {
             mAdapter.swapCursor(mCursor);
@@ -95,6 +100,23 @@ public class GamesActivity extends AppCompatActivity {
         mDataSource.close();
     }
 
+    private void updateGame(Game game) {
+        Intent intent = new Intent(this, GameModifyActivity.class);
+        intent.putExtra("game", game);
+        intent.setAction(Intent.ACTION_EDIT);
+        startActivity(intent);
+    }
+
+    private void addGame() {
+        Intent intent = new Intent(this, GameModifyActivity.class);
+        intent.setAction(Intent.ACTION_INSERT);
+        startActivity(intent);
+    }
 
 
+    @Override
+    public void onGameClick(Game game) {
+        updateGame (game);
+    }
 }
+

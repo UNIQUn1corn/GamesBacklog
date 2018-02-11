@@ -19,9 +19,15 @@ import com.example.marmm.gamesbacklog.data.GamesContract;
 public class GamesAdapter extends RecyclerView.Adapter<GamesAdapter.GameViewHolder> {
 
     private Cursor cursor;
+    private OnGameClickListener onGameClickListener;
 
-    public GamesAdapter( Cursor cursor) {
+    public interface OnGameClickListener {
+      void onGameClick(Game game);
+   }
+
+    public GamesAdapter(Cursor cursor, OnGameClickListener onGameClickListener) {
         this.cursor = cursor;
+        this.onGameClickListener = onGameClickListener;
     }
 
     @Override
@@ -54,16 +60,22 @@ public class GamesAdapter extends RecyclerView.Adapter<GamesAdapter.GameViewHold
         return (cursor == null ? 0 : cursor.getCount());
     }
 
-    public void swapCursor(Cursor cursor) {
-        this.cursor = cursor;
+    public void swapCursor(Cursor newCursor) {
+        if (cursor != null) cursor.close();
+        cursor = newCursor;
+        if (newCursor != null) {
+            // Force the RecyclerView to refresh
+            this.notifyDataSetChanged();
+        }
     }
+
 
 
     /**
      * A wrapper class representing a single view or row within our RecyclerView. The ViewHolder
      * holds a reference to all the views and the game object.
      */
-    class GameViewHolder extends RecyclerView.ViewHolder {
+    class GameViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener{
 
         private Game game;
         private final TextView title;
@@ -77,6 +89,7 @@ public class GamesAdapter extends RecyclerView.Adapter<GamesAdapter.GameViewHold
             date = view.findViewById(R.id.gameDate);
             status = view.findViewById(R.id.gameStatus);
             platform = view.findViewById(R.id.gamePlatform);
+            view.setOnClickListener(this);
         }
 
         public Game getGame() {
@@ -91,12 +104,23 @@ public class GamesAdapter extends RecyclerView.Adapter<GamesAdapter.GameViewHold
             platform.setText(game.getPlatform());
 
         }
+
+        @Override
+        public void onClick(View view) {
+            // Move the cursor to the right position
+            cursor.moveToPosition( getAdapterPosition());
+            // Create a game object from the cursor's data
+            Game game = new Game();
+            game.setId(cursor.getInt(cursor.getColumnIndex(GamesContract.GameEntry.COLUMN_NAME_ID)));
+            game.setTitle(cursor.getString(cursor.getColumnIndex(GamesContract.GameEntry.COLUMN_NAME_TITLE)));
+            game.setPlatform(cursor.getString(cursor.getColumnIndex(GamesContract.GameEntry.COLUMN_NAME_PLATFORM)));
+            game.setDateAdded(cursor.getString(cursor.getColumnIndex(GamesContract.GameEntry.COLUMN_NAME_DATE)));
+            game.setStatus(cursor.getString(cursor.getColumnIndex(GamesContract.GameEntry.COLUMN_NAME_STATUS)));
+            game.setNotes(cursor.getString(cursor.getColumnIndex(GamesContract.GameEntry.COLUMN_NAME_NOTES)));
+
+            onGameClickListener.onGameClick(game);
+        }
     }
 }
 
 
-// private OnGameClickListener onGameClickListener;
-
-// public interface OnGameClickListener {
-//     void onGameClick(Game game);
-// }
